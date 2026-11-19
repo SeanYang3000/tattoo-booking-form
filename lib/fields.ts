@@ -42,3 +42,8 @@ export function validate(values: Record<string, string>): Record<string, string>
   }
   return errors;
 }
+
+/** 表單送出後寄信的目的地（FormSubmit，免註冊）。啟用後可換成 FormSubmit 給的隨機代碼以隱藏信箱。 */
+export const FORMSUBMIT_TARGET = "alivenyung@gmail.com";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "";
+export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "";

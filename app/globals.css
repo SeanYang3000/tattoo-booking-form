@@ -5,6 +5,7 @@
   --bg: #ffffff;
   --soft: #f7f7f5;
   --danger: #eb5757;
+  --cover-gradient: linear-gradient(180deg, #e9dcc0 0%, #d8c8a2 30%, #6f8f8a 55%, #3f6f86 75%, #2c5470 100%);
 }
 
 * { box-sizing: border-box; }
@@ -23,9 +24,9 @@ html, body {
   height: 30vh;
   max-height: 280px;
   min-height: 120px;
-  background:
-    url("/cover.jpg") center 40% / cover no-repeat,
-    linear-gradient(180deg, #e9dcc0 0%, #d8c8a2 30%, #6f8f8a 55%, #3f6f86 75%, #2c5470 100%);
+  background-position: center 40%;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .page {
@@ -178,6 +179,8 @@ html, body {
 .done-title { font-size: 20px; font-weight: 600; margin: 0 0 8px; }
 .done-text { color: var(--muted); margin: 0 0 24px; }
 .secondary-btn {
+  display: inline-block;
+  text-decoration: none;
   font: inherit;
   font-size: 14px;
   color: var(--text);

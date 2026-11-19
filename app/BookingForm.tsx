@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FIELDS, UPLOAD, validate } from "@/lib/fields";
+import { FIELDS, UPLOAD, validate, FORMSUBMIT_TARGET, SITE_URL, BASE_PATH } from "@/lib/fields";
 
-type Status = "idle" | "submitting" | "done";
+type Status = "idle" | "submitting";
 
 export default function BookingForm() {
   const [values, setValues] = useState<Record<string, string>>({});
@@ -13,6 +13,8 @@ export default function BookingForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [submitError, setSubmitError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [nextUrl, setNextUrl] = useState("");
 
   function update(name: string, value: string) {
     setValues((v) => ({ ...v, [name]: value }));
@@ -42,49 +44,33 @@ export default function BookingForm() {
       return;
     }
 
+    // 把選好的圖片放回檔案欄位，交給瀏覽器以 multipart 原生送出（FormSubmit 會當附件寄出）
+    if (fileInput.current) {
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      fileInput.current.files = dt.files;
+    }
+    setNextUrl((SITE_URL || window.location.origin + BASE_PATH) + "/thanks/");
     setStatus("submitting");
     setSubmitError("");
-    const body = new FormData();
-    for (const f of FIELDS) body.append(f.name, values[f.name] ?? "");
-    for (const file of files) body.append(UPLOAD.name, file);
-
-    try {
-      const res = await fetch("/api/submit", { method: "POST", body });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        if (data.errors) setErrors(data.errors);
-        throw new Error(data.message || "提交失敗，請稍後再試。");
-      }
-      setStatus("done");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (err) {
-      setSubmitError((err as Error).message);
-      setStatus("idle");
-    }
-  }
-
-  if (status === "done") {
-    return (
-      <div className="done">
-        <p className="done-title">已收到你的回覆 🙏</p>
-        <p className="done-text">我們會盡快與你聯繫，討論刺青細節與預約時間。</p>
-        <button
-          type="button"
-          className="secondary-btn"
-          onClick={() => {
-            setValues({});
-            setFiles([]);
-            setStatus("idle");
-          }}
-        >
-          再填寫一份
-        </button>
-      </div>
-    );
+    // 等 nextUrl 寫入 DOM 後再送出
+    setTimeout(() => formRef.current?.submit(), 0);
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate>
+    <form
+      ref={formRef}
+      onSubmit={onSubmit}
+      noValidate
+      action={`https://formsubmit.co/${FORMSUBMIT_TARGET}`}
+      method="POST"
+      encType="multipart/form-data"
+    >
+      <input type="hidden" name="_subject" value={`刺青預約諮詢：${values.name ?? ""}`} />
+      <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_next" value={nextUrl} />
+      <input type="text" name="_honey" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
       {FIELDS.map((f) => (
         <div className="field" key={f.name}>
           <label htmlFor={f.name} className="label">
@@ -94,7 +80,7 @@ export default function BookingForm() {
           {f.description && <div className="description">{f.description}</div>}
           <input
             id={f.name}
-            name={f.name}
+            name={f.label}
             className={`input${errors[f.name] ? " input-error" : ""}`}
             placeholder="你的回答"
             inputMode={f.inputMode}
@@ -116,6 +102,7 @@ export default function BookingForm() {
           <input
             ref={fileInput}
             type="file"
+            name="attachment"
             accept="image/*"
             multiple
             hidden

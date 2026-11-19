@@ -13,5 +13,6 @@ npm run dev      # http://localhost:3000
 
 - `lib/fields.ts`：表單標題、圖示、欄位、上傳限制（改這裡就能增減題目）
 - `app/BookingForm.tsx`：表單畫面
-- `app/api/submit/route.ts`：接收提交，存到 `data/submissions.json`，圖片存到 `data/uploads/`
+- 送出：透過 FormSubmit 把申請內容與參考圖寄到 `lib/fields.ts` 的 `FORMSUBMIT_TARGET`
+- 部署：push 到 main 後由 GitHub Actions 自動發佈到 GitHub Pages
 - `public/cover.jpg`：放一張封面圖就會自動套用（沒放則顯示漸層）
